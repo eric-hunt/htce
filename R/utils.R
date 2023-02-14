@@ -46,3 +46,45 @@ count_newlines <- function(path, remove_header = TRUE, ignore_trailing = TRUE) {
 
   as.integer(returncount)
 }
+
+
+
+##-----------------------------------------
+##  Generate well address order          --
+##-----------------------------------------
+
+#' Create a vector of well addresses
+#'
+#' @param num_wells An integer - the number of wells in the plate format (96 or 384)
+#' @param pad A Boolelan - whether or not to pad the column numbers with zeros (e.g. A1 vs. A01)
+#'
+#' @return A character vector of well addresses in top to bottom, left to right order (e.g. for 96 wells, A1 -> H1, A2...H11, A12 -> H12)
+#' @export
+#'
+make_well_order <- function(num_wells, pad = FALSE) {
+  assertthat::assert_that(num_wells %in% c(96, 384),
+                          msg = "number of wells should be 96 or 384")
+  if (num_wells == 96) {
+    well_letters <- rep(c(LETTERS[1:8]), 12)
+    well_numbers <- purrr::flatten_chr(
+      purrr::map(as.character(c(1:12)), rep, 8)
+    )
+  } else if (num_wells == 384) {
+    well_letters <- rep(c(LETTERS[1:16]), 24)
+    well_numbers <- purrr::flatten_chr(
+      purrr::map(as.character(c(1:24)), rep, 16)
+    )
+  }
+
+  if (pad) {
+    well_numbers <- stringr::str_pad(well_numbers, 2, "left", "0")
+  }
+
+  well_order <- purrr::map2_chr(
+    well_letters,
+    well_numbers,
+    paste0
+  )
+
+  return(well_order)
+}
