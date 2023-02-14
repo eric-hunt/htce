@@ -6,7 +6,6 @@
 \usage{
 barcode_to_plate_id(
   barcode,
-  ...,
   .db_loc = "./htCE.duckdb",
   .db_con = NULL,
   .pg_load = FALSE

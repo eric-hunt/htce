@@ -42,7 +42,6 @@ existing_barcodes <- function(source_only = FALSE, .db_loc = "./htCE.duckdb",
 #' Retrieve a plate_id from a barcode string
 #'
 #' @param barcode A string - the unique barcode identifying the physical plate
-#' @param ...
 #' @param .db_loc A string - local path to the DuckDB file; passed to [dkdb_collect()]
 #' @param .db_con A valid DBIConnection object; passed to [dkdb_collect()]
 #' @param .pg_load A Boolean - use the DuckDB Postgres extension?; passed to [dkdb_collect()]
@@ -50,14 +49,13 @@ existing_barcodes <- function(source_only = FALSE, .db_loc = "./htCE.duckdb",
 #' @return A double value representing the `plate_id` integer primary key which corresponds to the barcode argument
 #' @export
 #'
-barcode_to_plate_id <- function(barcode, ..., .db_loc = "./htCE.duckdb",
+barcode_to_plate_id <- function(barcode, .db_loc = "./htCE.duckdb",
                                 .db_con = NULL, .pg_load = FALSE) {
   dkdb_collect(
     "SELECT id
     FROM plates
     WHERE barcode = {barcode};",
     barcode = barcode,
-    ...,
     .db_loc = .db_loc,
     .db_con = .db_con,
     .pg_load = .pg_load
