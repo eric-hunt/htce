@@ -2,4 +2,5 @@
 
 export(dkdb_collect)
 export(dkdb_execute)
+export(existing_barcodes)
 export(with_duckdb_connection)
