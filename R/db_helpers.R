@@ -171,3 +171,72 @@ component_lookup <- function(...,
     }()
 }
 
+
+
+##----------------------------------------------
+##  Lookup well component ('id' or `EXISTS`)  --
+##----------------------------------------------
+
+#' Lookup a component and return the component_id or if it exists
+#'
+#' @param ... Key-value pairs - unique set of injected arguments (using [glue::glue_sql()]) for well component lookup (`well_id` and `component_id`)
+#' @param .table A string - the table to query in the database schema
+#' @param .return A string - should the returned value be a `component_id` ("id") or a Boolean from an `EXISTS` operator subquery ("exists")
+#' @param .db_loc A string - local path to the DuckDB file; passed to [dkdb_collect()]
+#' @param .db_con A valid DBIConnection object; passed to [dkdb_collect()]
+#' @param .pg_load A Boolean - use the DuckDB Postgres extension?; passed to [dkdb_collect()]
+#'
+#' @return A primary key `id` as a double (.return = "id") or a Boolean value returned from an `EXISTS` operator subquery (.return = "exixts")
+#' @export
+#'
+well_component_lookup <- function(...,
+                             .table = "well_components", .return = "exists",
+                             .db_loc = "./htCE.duckdb", .db_con = NULL,
+                             .pg_load = FALSE) {
+  if (is.null(.db_con)) {
+    .db_con <- with_duckdb_connection(.db_loc)
+  }
+
+  .return <- match.arg(.return, c("id", "exists"))
+
+  select_prefix <- switch(
+    .return,
+    "id" = "SELECT id FROM ",
+    "exists" = "SELECT EXISTS(SELECT id FROM "
+  )
+  select_suffix <- switch(
+    .return,
+    "id" = NULL,
+    "exists" = ")"
+  )
+
+  named_vals <- list(...)
+  rlang::inject(
+    glue::glue_sql(
+      named_vals |>
+        {
+          \(x) paste0(
+            names(x),
+            ifelse(is.na(x), " IS {", " = {"),
+            names(x),
+            "}"
+          )
+        }() |>
+        {
+          \(y) paste0(
+            select_prefix,
+            .table,
+            " WHERE ",
+            purrr::reduce(y, paste, sep = " AND "),
+            select_suffix
+          )
+        }(),
+      !!!named_vals,
+      .con = .db_con
+    )
+  ) |>
+    dkdb_collect(.db_loc = .db_loc, .db_con = .db_con, .pg_load = .pg_load) |>
+    {
+      \(x) x[[1]]
+    }()
+}
