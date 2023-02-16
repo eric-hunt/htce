@@ -17,5 +17,7 @@ Depends: R (>= 4.1)
 Imports: 
     DBI,
     duckdb,
+    glue,
+    rlang,
     tibble,
     withr

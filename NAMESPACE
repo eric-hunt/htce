@@ -2,6 +2,7 @@
 
 export(address_to_well_id)
 export(barcode_to_plate_id)
+export(component_lookup)
 export(count_newlines)
 export(dkdb_collect)
 export(dkdb_execute)
