@@ -88,3 +88,38 @@ make_well_order <- function(num_wells, pad = FALSE) {
 
   return(well_order)
 }
+
+
+
+##----------------------------------------
+##  Find skip values                    --
+##----------------------------------------
+
+#' Find and return skip values
+#'
+#' Returns a named list of skip values for importing Echo transfer report metadata and transfer data.
+#'
+#' @param file_path A string - the path to the .csv delimited file to read
+#'
+#' @return A named list of skip values to use during Echo transfer report import
+#' @export
+#'
+find_skips <- function(file_path) {
+  skips <- c()
+
+  skip_search <- function(path, pattern) {
+    tryCatch(
+      min(grep(pattern = pattern, x = readr::read_lines(file_path))),
+      error = function(e) NULL,
+      warning = function(w) NULL,
+      message = function(m) NULL
+    )
+  }
+
+  skips$header <- skip_search(file_path, "Run ID") - 1
+  skips$exceptions <- skip_search(file_path, "\\[EXCEPTIONS\\]")
+  skips$details <- skip_search(file_path, "\\[DETAILS\\]")
+  skips$footer <- skip_search(file_path, "Instrument Name") - 1
+
+  skips
+}
