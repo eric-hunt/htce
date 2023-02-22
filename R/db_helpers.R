@@ -137,7 +137,7 @@ dkdb_lookup <- function(...,
   select_prefix <- switch(
     .return,
     "id" = "SELECT id FROM ",
-    "exists" = "SELECT EXISTS(SELECT id FROM "
+    "exists" = "SELECT EXISTS(SELECT 1 FROM "
   )
   select_suffix <- switch(
     .return,
