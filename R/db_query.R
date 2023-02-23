@@ -50,7 +50,7 @@ dkdb_execute <- function(query_string, ..., .quiet = TRUE,
     cat("\n")
   }
 
-  if (is.null(.db_con)) {
+  if (is.null(.db_con) & !.quiet) {
     withr::defer(
       cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
       priority = "last"
@@ -120,7 +120,7 @@ dkdb_collect <- function(query_string, ..., .quiet = TRUE,
     cat("\n")
   }
 
-  if (is.null(.db_con)) {
+  if (is.null(.db_con) & !.quiet) {
     withr::defer(
       cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
       priority = "last"
