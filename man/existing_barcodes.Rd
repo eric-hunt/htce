@@ -6,12 +6,15 @@
 \usage{
 existing_barcodes(
   source_only = FALSE,
+  .table = "plates",
   .db_loc = "./htCE.duckdb",
   .db_con = NULL
 )
 }
 \arguments{
 \item{source_only}{A Boolean - only retrieve source plate barcodes}
+
+\item{.table}{A string - the database table to query (\verb{\{.table\}.barcode})}
 
 \item{.db_loc}{A string - local path to the DuckDB file; passed to \code{\link[=dkdb_collect]{dkdb_collect()}}}
 

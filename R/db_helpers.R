@@ -10,22 +10,30 @@
 #' Title
 #'
 #' @param source_only A Boolean - only retrieve source plate barcodes
+#' @param .table A string - the database table to query (`{.table}.barcode`)
 #' @param .db_loc A string - local path to the DuckDB file; passed to [dkdb_collect()]
 #' @param .db_con A valid DBIConnection object; passed to [dkdb_collect()]
 #'
 #' @return A named character vector of barcodes that exist in the database
 #' @export
 #'
-existing_barcodes <- function(source_only = FALSE, .db_loc = "./htCE.duckdb",
-                              .db_con = NULL) {
+existing_barcodes <- function(source_only = FALSE, .table = "plates",
+                              .db_loc = "./htCE.duckdb", .db_con = NULL) {
   boolset <- c(TRUE, FALSE)
   if (source_only) {
     boolset <- c(TRUE)
   }
 
+  opening <- glue::glue("SELECT DISTINCT barcode FROM {.table}")
+
+  if (.table == "plates") {
+    closing <- " WHERE is_src_plate IN ({vals*})"
+  } else {
+    closing <- ";"
+  }
+
   htce::dkdb_collect(
-    "SELECT barcode FROM plates
-    WHERE is_src_plate IN ({vals*});",
+    paste0(opening, closing),
     vals = boolset,
     .db_loc = .db_loc,
     .db_con = .db_con,
