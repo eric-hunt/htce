@@ -165,11 +165,11 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
 
 #' Return the number of lines in a file
 #'
-#' @param path a string - path to file
-#' @param remove_header a Boolean - should the first row be ignored?
-#' @param ignore_trailing a Boolean - should a trailing '\n' be ignored?
+#' @param path A string - path to file
+#' @param remove_header A Boolean - should the first row be ignored?
+#' @param ignore_trailing A Boolean - should a trailing '\n' be ignored?
 #'
-#' @return
+#' @return An integer - the number of lines in the file
 #' @export
 #'
 count_newlines <- function(path, remove_header = TRUE, ignore_trailing = TRUE) {
