@@ -23,7 +23,8 @@ dkdb_collect(
   .db_loc = "./htCE.duckdb",
   .db_con = NULL,
   .pg_install = FALSE,
-  .pg_load = FALSE
+  .pg_load = FALSE,
+  .return = NULL
 )
 }
 \arguments{
@@ -31,7 +32,7 @@ dkdb_collect(
 
 \item{...}{Key-value pairs - additional injected values passed to \code{\link[glue:glue_sql]{glue::glue_sql()}}}
 
-\item{.quiet}{A Boolean - supress console messages?}
+\item{.quiet}{A Boolean - suppress console messages?}
 
 \item{.db_loc}{A string - local path to the DuckDB file}
 
@@ -40,9 +41,11 @@ dkdb_collect(
 \item{.pg_install}{A Boolean - install the DuckDB Postgres extension?}
 
 \item{.pg_load}{A Boolean - use the DuckDB Postgres extension?}
+
+\item{.return}{A string - how collected data should be returned, default is a \code{data.frame} (alias \emph{df}, see \code{\link[DBI:dbGetQuery]{DBI::dbGetQuery()}}), but can also be coerced to a \code{tibble} (alias \emph{tbl}, see \code{\link[tibble:as_tibble]{tibble::as_tibble()}}) or \code{data.table} (alias \emph{dt}, see \code{\link[data.table:as.data.table]{data.table::as.data.table()}})}
 }
 \value{
-A \code{tibble} containing collected results.
+A \code{data.frame} (default), \code{tibble}, or \code{data.table} containing the collected query results
 }
 \description{
 Execute or collect results from a query to a DuckDB database.

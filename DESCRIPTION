@@ -16,6 +16,7 @@ RoxygenNote: 7.2.3.9000
 Depends: R (>= 4.1)
 Imports: 
     assertthat,
+    data.table,
     DBI,
     duckdb,
     glue,
