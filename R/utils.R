@@ -152,7 +152,7 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
     submission_dfs,
     sample_prefixes,
     function(df, filename) {
-      readr::write_tsv(df, fs::path(dest_dir, paste0(filename, ".txt")))
+      readr::write_csv(df, fs::path(dest_dir, paste0(filename, ".csv")))
     }
   )
 }
