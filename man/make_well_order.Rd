@@ -4,10 +4,12 @@
 \alias{make_well_order}
 \title{Create a vector of well addresses}
 \usage{
-make_well_order(num_wells, pad = FALSE)
+make_well_order(num_wells = c(96, 384), by = c("col", "row"), pad = FALSE)
 }
 \arguments{
 \item{num_wells}{An integer - the number of wells in the plate format (96 or 384)}
+
+\item{by}{A string - which way the order should be populated relative to the plate format, i.e. by column \code{"col"} (default) or by `"row"}
 
 \item{pad}{A Boolelan - whether or not to pad the column numbers with zeros (e.g. A1 vs. A01)}
 }

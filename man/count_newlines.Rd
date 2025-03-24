@@ -4,7 +4,7 @@
 \alias{count_newlines}
 \title{Return the number of lines in a file}
 \usage{
-count_newlines(path, remove_header = TRUE, ignore_trailing = TRUE)
+count_newlines(path, remove_header = TRUE, ignore_trailing = FALSE)
 }
 \arguments{
 \item{path}{A string - path to file}
