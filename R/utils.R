@@ -10,33 +10,49 @@
 #' Create a vector of well addresses
 #'
 #' @param num_wells An integer - the number of wells in the plate format (96 or 384)
+#' @param by A string - which way the order should be populated relative to the plate format, i.e. by column `"col"` (default) or by `"row"
 #' @param pad A Boolelan - whether or not to pad the column numbers with zeros (e.g. A1 vs. A01)
 #'
 #' @return A character vector of well addresses in top to bottom, left to right order (e.g. for 96 wells, A1 -> H1, A2...H11, A12 -> H12)
 #' @export
 #'
-make_well_order <- function(num_wells, pad = FALSE) {
+make_well_order <- function(num_wells = c(96, 384), by = c("col", "row"),
+                            pad = FALSE) {
+  if (missing(num_wells)) {
+    num_wells <- 96
+  }
   assertthat::assert_that(num_wells %in% c(96, 384),
                           msg = "number of wells should be 96 or 384")
-  if (num_wells == 96) {
-    well_letters <- rep(c(LETTERS[1:8]), 12)
-    well_numbers <- purrr::flatten_chr(
-      purrr::map(as.character(c(1:12)), rep, 8)
-    )
-  } else if (num_wells == 384) {
-    well_letters <- rep(c(LETTERS[1:16]), 24)
-    well_numbers <- purrr::flatten_chr(
-      purrr::map(as.character(c(1:24)), rep, 16)
-    )
+  if (num_wells == 384) {
+    x <- 24
+    y <- 16
+  } else {
+    x <- 12
+    y <- 8
   }
 
+  well_letters <- LETTERS[1:y]
+  well_numbers <- as.character(c(1:x))
   if (pad) {
     well_numbers <- stringr::str_pad(well_numbers, 2, "left", "0")
+    number_labels <- rep(well_numbers, y)
+  }
+
+  if (missing(by)) {
+    by <- "col"
+  }
+  rlang::arg_match(by)
+  if (by == "row") {
+    letter_labels <- lapply(well_letters, rep, x) |> unlist()
+    number_labels <- rep(well_numbers, y)
+  } else {
+    letter_labels <- rep(well_letters, x)
+    number_labels <- lapply(well_numbers, rep, y) |> unlist()
   }
 
   well_order <- purrr::map2_chr(
-    well_letters,
-    well_numbers,
+    letter_labels,
+    number_labels,
     paste0
   )
 
