@@ -172,7 +172,7 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
 #' @return An integer - the number of lines in the file
 #' @export
 #'
-count_newlines <- function(path, remove_header = TRUE, ignore_trailing = TRUE) {
+count_newlines <- function(path, remove_header = TRUE, ignore_trailing = FALSE) {
 
   assertthat::assert_that(
     is.logical(remove_header), msg = "`remove_header` must be true or false."
@@ -224,7 +224,7 @@ find_skips <- function(file_path) {
   skip_search <- function(path, pattern) {
     tryCatch(
       min(grep(pattern = pattern, x = readr::read_lines(file_path))),
-      error = function(e) NULL,
+      error = function(e) 0,
       warning = function(w) NULL,
       message = function(m) NULL
     )
