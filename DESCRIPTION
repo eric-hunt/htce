@@ -19,6 +19,7 @@ Imports:
     data.table,
     DBI,
     duckdb,
+    ebaser,
     generics,
     glue,
     rlang,

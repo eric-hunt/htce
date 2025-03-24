@@ -170,16 +170,17 @@ dkdb_collect <- function(query_string, ..., .quiet = TRUE,
 
   collected <- DBI::dbGetQuery(db, statement)
 
-  if (.return %in% c("tibble", "tbl")) {
-    collected |>
+  dplyr::glimpse(collected)
+
+  if (!is.null(.return)) {
+    return_fn <- ebaser:::.return_fn_factory(.return)
+    if (identical(return_fn, tibble::as_tibble)) {
       # don't initially error out if duplicates exist at tibble creation
-      tibble::as_tibble(.name_repair = "minimal")
-  } else if (.return %in% c("data.table", "dt")) {
-    collected |>
-      data.table::as.data.table()
-  } else if (.return %in% c("data.frame", "df")) {
-    as.data.frame(collected)
+      return_fn(collected, .name_repair = "minimal") |> invisible()
+    } else {
+      return_fn(collected) |> invisible()
+    }
   } else {
-    as.data.frame(collected)
+    collected |> invisible()
   }
 }
