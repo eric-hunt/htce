@@ -26,6 +26,6 @@ A database connection of class \emph{DBIConnection}.
 DuckDB connection handling à la \code{withr::local_db_connection}.
 }
 \seealso{
-\code{\link[DBI:dbConnect]{DBI::dbConnect()}}, \code{\link[withr:defer]{withr::defer()}}, \code{\link[withr:with_db_connection]{withr::local_db_connection()}},
+\code{\link[DBI:dbConnect]{DBI::dbConnect()}}, \code{\link[withr:defer]{withr::defer()}}, \code{\link[withr:local_db_connection]{withr::local_db_connection()}},
 \href{https://github.com/duckdb/duckdb/pull/5525}{duckdb/duckdb#5525}
 }

@@ -6,9 +6,6 @@
 \usage{
 new_fatools_matrix(m = matrix())
 }
-\arguments{
-\item{m}{}
-}
 \description{
 Title
 }
