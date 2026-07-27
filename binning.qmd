@@ -1,0 +1,233 @@
+# Example binning function
+
+```{r}
+example_binset <- list(
+  substrate = c(72.5, 74),
+  product_A = c(42, 47),
+  product_B = c(85, 90),
+  product_X = c(39, 42),
+  product_Y = c(80, 83)
+)
+```
+
+```{r}
+label_peaks <- function(peaks, binset) {
+  purrr::map_chr(
+    peaks,
+    function(x) {
+      bin_name <- purrr::map_lgl(
+        binset,
+        function(b) {
+          b[1] < x & b[2] > x
+        }
+      ) |>
+        which() |>
+        names()
+
+      if (rlang::is_empty(bin_name)) {
+        "undefined"
+      } else {
+        bin_name
+      }
+    }
+  )
+}
+```
+
+# Creating bins and bin_sets tables:
+
+  - bins:
+    - id (counter)::INT
+    - label::VARCHAR
+    - bin_start::FLOAT
+    - bin_stop::FLOAT
+    - close_start::BOOL
+    - close_stop::BOOL
+    - dye::VARCHAR
+  - bin_sets:
+    - id (counter)::INT
+    - name::VARCHAR
+    - polymer::VARCHAR (limit to POP6 or POP7)
+
+  - ce_bins (unified):
+    - name::VARCHAR
+    - polymer::VARCHAR (limit to POP6 or POP7)
+    - label::VARCHAR
+    - bin_lower::FLOAT
+    - bin_uppper::FLOAT
+    - close_upper::BOOL
+      - lower always closed, upper always open; if upper is closed,
+        there must be a unique constraint on that entry relative to all
+        bin_lower bounds (maybe this should be the other way around since we
+        don't want to generate as many bp = 0 peaks with CEcropia)
+      - additionally, each bin_lower and bin_upper value must not be contained
+        within any of the other existing pairs of lower and upper bounds
+    - dye::VARCHAR
+
+For this particular purpose, probably joining into one table is fine. The memory cost of repeated values is minimal in comparison to the work needed to setup id counters and entry logic.
+
+```{r}
+dkdb_execute(
+  "CREATE OR REPLACE TABLE bins (
+  binset_name VARCHAR,
+  polymer VARCHAR CHECK (polymer IN ('POP6', 'POP7')),
+  dye VARCHAR CHECK (dye IN ('B', 'G', 'R', 'Y', 'O')),
+  label VARCHAR,
+  lower_bound FLOAT,
+  upper_bound FLOAT
+)",
+  .db_con = dbcon
+)
+```
+
+```{r}
+TelA <- list(
+  substrate = c(68, 76),
+  product_A = c(37, 48),
+  product_B = c(78, 92),
+  intermediates = c(9, 20)
+)
+TelN <- list(
+  substrate = c(84, 89),
+  product_A = c(54, 56)
+)
+```
+
+```{r}
+mget(c("TelA", "TelN")) |>
+  imap(
+    \(binset, nm) {
+      imap(
+        binset,
+        \(value, lab) {
+          tibble::tibble(
+            binset_name = nm,
+            polymer = "POP7",
+            dye = "B",
+            label = lab,
+            lower_bound = value[1],
+            upper_bound = value[2]
+          )
+        }
+      ) |>
+        purrr::list_rbind()
+    }
+  ) |>
+  purrr::list_rbind() |>
+  dbWriteTable(dbcon, name = "bins", value = _, append = TRUE)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT * FROM bins;",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT * FROM results_view rv LIMIT 10",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT * FROM bins;",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT rv.*,
+    COALESCE(b.label, 'undefined') AS label
+  FROM results_view rv
+  LEFT JOIN bins b
+    ON rv.bp > b.lower_bound AND rv.bp <= b.upper_bound;",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_execute(
+  "CREATE OR REPLACE VIEW binned_view AS
+  WITH filtered AS (
+    SELECT *
+    FROM (
+      SELECT *,
+             max(height) OVER (PARTITION BY well_id) AS max_height
+      FROM results_view
+    ) sub
+    WHERE height > 0.05 * max_height
+  )
+  SELECT f.ce_experiment_id, f.address, f.row, f.col, f.sample_num, f.degC,
+         f.days, f.mg_mL, f.dye, f.scan, f.bp, f.height, f.area,
+         area / sum(area) OVER (PARTITION BY well_id) AS rel_area,
+         COALESCE(b.label, 'undefined') AS label,
+         f.well_id, f.ce_trace_id
+  FROM filtered f
+  LEFT JOIN bins b
+    ON f.bp > b.lower_bound AND f.bp <= b.upper_bound
+  WHERE b.binset_name = 'TelA';",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT * FROM binned_view;",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_collect(
+  "SELECT *
+  FROM (
+    SELECT *,
+           area / sum(area) OVER (PARTITION BY well_id) AS rel_area
+    FROM binned_view
+  )",
+  .db_con = dbcon
+)
+```
+
+```{r}
+dkdb_execute(
+  "CREATE OR REPLACE VIEW processed_view AS
+    WITH counted AS (
+    SELECT *,
+    COUNT(*) OVER (PARTITION BY well_id, label) AS label_count,
+    SUM(rel_area) OVER (PARTITION BY well_id, label) AS rel_combined,
+    RANK() OVER (PARTITION BY well_id, label ORDER BY height DESC) AS height_rank
+    FROM binned_view
+    ),
+    filtered AS (
+     SELECT *
+     FROM counted
+     WHERE label_count > 1 AND height_rank = 1
+     UNION ALL
+     SELECT *
+     FROM counted
+     WHERE label_count = 1
+    )
+  SELECT ce_experiment_id, address, row, col, sample_num, degC, days, mg_mL,
+         dye, scan, bp, height, area,
+         CASE WHEN label_count > 1 THEN rel_combined ELSE rel_area END AS rel_area,
+         label, well_id, ce_trace_id
+  FROM filtered f
+  ",
+  .db_con = dbcon
+)
+```
+
+
+```{r}
+dkdb_collect(
+  "SELECT * FROM processed_view LIMIT 10",
+  .db_con = dbcon
+)
+```
+
+------------------------------------------------------------------------
