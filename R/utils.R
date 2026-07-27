@@ -56,10 +56,30 @@ make_well_order <- function(num_wells = 96L, by = c("column", "row"),
 }
 
 
+##----------------------------------------
+##  Generate a serial dilution set      --
+##----------------------------------------
 
-##-----------------------------------------
+dilset <- function(start_conc = 2.0, serial_step = 2, num_steps = 8,
+                   end_zero = TRUE) {
+  if (end_zero) {
+    well_nums <- c(1:(num_steps - 1))
+  } else {
+    well_nums <- c(1:num_steps)
+  }
+
+  concs <- purrr::map_dbl(well_nums, \(x) start_conc / serial_step^(x - 1))
+
+  if (end_zero) {
+    concs <- c(concs, 0)
+  }
+
+  return(concs)
+}
+
+## -----------------------------------------
 ##  Generate submission files            --
-##-----------------------------------------
+## -----------------------------------------
 
 #' Create CE submission files
 #'
@@ -76,9 +96,9 @@ make_well_order <- function(num_wells = 96L, by = c("column", "row"),
 #' @export
 #'
 make_submission_files <- function(initials = "EH", datetime = NULL,
-                                 plate_code = 5,
-                                 num_wells = 96, num_plates = 12,
-                                 dest_dir = NULL, .pad_well_num = FALSE) {
+                                  plate_code = 5,
+                                  num_wells = 96, num_plates = 12,
+                                  dest_dir = NULL, .pad_well_num = FALSE) {
   assertthat::assert_that(num_wells %in% c(96, 384),
     msg = "number of wells should be 96 or 384"
   )
@@ -143,10 +163,10 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
     ),
     function(plate_num) {
       paste(initials,
-            as.character(plate_code),
-            as.character(datetime),
-            plate_num,
-            sep = "_"
+        as.character(plate_code),
+        as.character(datetime),
+        plate_num,
+        sep = "_"
       )
     }
   )
