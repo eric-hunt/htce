@@ -1,9 +1,6 @@
-
 ##-------------------------------------------------------------------------
 ##  database_access.R                                                    --
 ##-------------------------------------------------------------------------
-
-
 
 ##----------------------------------------
 ##  Query DuckDB                        --
@@ -20,11 +17,10 @@
 #' @param .db_con A valid DBIConnection object
 #' @param .pg_install A Boolean - install the DuckDB Postgres extension?
 #' @param .pg_load A Boolean - use the DuckDB Postgres extension?
+#' @param .glimpse A Boolean - should collected results be previewed
 #' @param .return A string - how collected data should be returned, default is a `data.frame` (alias *df*, see [DBI::dbGetQuery()]), but can also be coerced to a `tibble` (alias *tbl*, see [tibble::as_tibble()]) or `data.table` (alias *dt*, see [data.table::as.data.table()])
 #'
 #' @name db_query
-
-
 
 ##-----------------------
 ##  Execute query      --
@@ -36,9 +32,15 @@
 #'
 #' @export
 #'
-dkdb_execute <- function(query_string, ..., .quiet = TRUE,
-                         .db_loc = "./htCE.duckdb", .db_con = NULL,
-                         .pg_install = FALSE, .pg_load = FALSE) {
+dkdb_execute <- function(
+  query_string,
+  ...,
+  .quiet = TRUE,
+  .db_loc = "./htCE.duckdb",
+  .db_con = NULL,
+  .pg_install = FALSE,
+  .pg_load = FALSE
+) {
   if (is.null(.db_con)) {
     db <- with_duckdb_connection(.db_loc)
   } else {
@@ -92,7 +94,6 @@ dkdb_execute <- function(query_string, ..., .quiet = TRUE,
 }
 
 
-
 ##-----------------------
 ##  Collect query      --
 ##-----------------------
@@ -105,10 +106,17 @@ dkdb_execute <- function(query_string, ..., .quiet = TRUE,
 #'
 #' @export
 #'
-dkdb_collect <- function(query_string, ..., .quiet = TRUE,
-                         .db_loc = "./htCE.duckdb", .db_con = NULL,
-                         .pg_install = FALSE, .pg_load = FALSE,
-                         .return = NULL) {
+dkdb_collect <- function(
+  query_string,
+  ...,
+  .quiet = TRUE,
+  .db_loc = "./htCE.duckdb",
+  .db_con = NULL,
+  .pg_install = FALSE,
+  .pg_load = FALSE,
+  .glimpse = TRUE,
+  .return = NULL
+) {
   if (is.null(.db_con)) {
     db <- with_duckdb_connection(.db_loc)
   } else {
@@ -135,7 +143,6 @@ dkdb_collect <- function(query_string, ..., .quiet = TRUE,
   } else {
     .return <- getOption("htce.tabular_class")
   }
-
 
   varargs <- rlang::dots_list(
     ...,
@@ -170,7 +177,9 @@ dkdb_collect <- function(query_string, ..., .quiet = TRUE,
 
   collected <- DBI::dbGetQuery(db, statement)
 
-  dplyr::glimpse(collected)
+  if (.glimpse) {
+    dplyr::glimpse(collected)
+  }
 
   if (!is.null(.return)) {
     return_fn <- ebaser:::.return_fn_factory(.return)

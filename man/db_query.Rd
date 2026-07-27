@@ -24,6 +24,7 @@ dkdb_collect(
   .db_con = NULL,
   .pg_install = FALSE,
   .pg_load = FALSE,
+  .glimpse = TRUE,
   .return = NULL
 )
 }
@@ -41,6 +42,8 @@ dkdb_collect(
 \item{.pg_install}{A Boolean - install the DuckDB Postgres extension?}
 
 \item{.pg_load}{A Boolean - use the DuckDB Postgres extension?}
+
+\item{.glimpse}{A Boolean - should collected results be previewed}
 
 \item{.return}{A string - how collected data should be returned, default is a \code{data.frame} (alias \emph{df}, see \code{\link[DBI:dbGetQuery]{DBI::dbGetQuery()}}), but can also be coerced to a \code{tibble} (alias \emph{tbl}, see \code{\link[tibble:as_tibble]{tibble::as_tibble()}}) or \code{data.table} (alias \emph{dt}, see \code{\link[data.table:as.data.table]{data.table::as.data.table()}})}
 }
