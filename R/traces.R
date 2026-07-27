@@ -19,7 +19,6 @@
 #' @return
 #' @export
 #'
-#' @examples
 new_fatools_matrix <- function(m = matrix()) {
   stopifnot(is.matrix(m))
   structure(m, class = c("fatools_matrix", "matrix"))
@@ -37,7 +36,6 @@ new_fatools_matrix <- function(m = matrix()) {
 #' @return
 #' @export
 #'
-#' @examples
 validate_fatools_matrix <- function(m) {
   num_dim <- length(dim(m))
   num_cols <- dim(m)[2]
@@ -68,12 +66,8 @@ validate_fatools_matrix <- function(m) {
 
 #' Title
 #'
-#' @param m
-#'
-#' @return
 #' @export
 #'
-#' @examples
 fatools_matrix <- function(m) {
   if (is.character(m)) {
     m <- jsonlite::fromJSON(m)
@@ -91,12 +85,8 @@ fatools_matrix <- function(m) {
 
 #' Title
 #'
-#' @param x
+#' @exportS3Method generics::tidy
 #'
-#' @return
-#' @export
-#'
-#' @examples
 tidy.fatools_matrix <- function(x, ...) {
   tibble::tibble(
     "scan" = as.numeric(x[, "scan"]),

@@ -1,47 +1,43 @@
-
-##-------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 ##  utilities.R                                                          --
-##-------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 
-##-----------------------------------------
+## -----------------------------------------
 ##  Generate well address order          --
-##-----------------------------------------
+## -----------------------------------------
 
 #' Create a vector of well addresses
 #'
 #' @param num_wells An integer - the number of wells in the plate format (96 or 384)
-#' @param by A string - which way the order should be populated relative to the plate format, i.e. by column `"col"` (default) or by `"row"
+#' @param by A string - which way the order should be populated relative to the plate format, i.e. by `"column"` (default) or by `"row"`
 #' @param pad A Boolelan - whether or not to pad the column numbers with zeros (e.g. A1 vs. A01)
 #'
 #' @return A character vector of well addresses in top to bottom, left to right order (e.g. for 96 wells, A1 -> H1, A2...H11, A12 -> H12)
 #' @export
 #'
-make_well_order <- function(num_wells = c(96, 384), by = c("col", "row"),
+make_well_order <- function(num_wells = 96L, by = c("column", "row"),
                             pad = FALSE) {
-  if (missing(num_wells)) {
-    num_wells <- 96
-  }
-  assertthat::assert_that(num_wells %in% c(96, 384),
-                          msg = "number of wells should be 96 or 384")
-  if (num_wells == 384) {
-    x <- 24
-    y <- 16
+  assertthat::assert_that(
+    is.numeric(num_wells),
+    assertthat::is.scalar(num_wells),
+    is.element(num_wells, c(96L, 384L))
+  )
+  if (num_wells == 384L) {
+    x <- 24L
+    y <- 16L
   } else {
-    x <- 12
-    y <- 8
+    x <- 12L
+    y <- 8L
   }
 
-  well_letters <- LETTERS[1:y]
-  well_numbers <- as.character(c(1:x))
+  well_letters <- LETTERS[1L:y]
+  well_numbers <- as.character(c(1L:x))
   if (pad) {
-    well_numbers <- stringr::str_pad(well_numbers, 2, "left", "0")
+    well_numbers <- stringr::str_pad(well_numbers, 2L, "left", "0")
     number_labels <- rep(well_numbers, y)
   }
 
-  if (missing(by)) {
-    by <- "col"
-  }
-  rlang::arg_match(by)
+  by <- rlang::arg_match(by)
   if (by == "row") {
     letter_labels <- lapply(well_letters, rep, x) |> unlist()
     number_labels <- rep(well_numbers, y)
@@ -83,27 +79,31 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
                                  plate_code = 5,
                                  num_wells = 96, num_plates = 12,
                                  dest_dir = NULL, .pad_well_num = FALSE) {
-
   assertthat::assert_that(num_wells %in% c(96, 384),
-                          msg = "number of wells should be 96 or 384")
+    msg = "number of wells should be 96 or 384"
+  )
 
   assertthat::assert_that(plate_code %in% c(1:6),
-                          msg = "plate code must be in c(1:6)")
+    msg = "plate code must be in c(1:6)"
+  )
 
   assertthat::assert_that(!is.null(dest_dir),
-                          msg = "must provide destination directory to write to")
+    msg = "must provide destination directory to write to"
+  )
   assertthat::assert_that(fs::dir_exists(dest_dir),
-                          msg = "destination directory does not exist")
+    msg = "destination directory does not exist"
+  )
 
   datetime_format <- "%y%m%d"
   datetime_to_string <- function(datetime_obj) {
     format(datetime_obj, datetime_format)
   }
 
-  if (is.null(datetime))
+  if (is.null(datetime)) {
     datetime <- datetime_to_string(lubridate::today())
-  else
+  } else {
     datetime <- datetime_to_string(datetime)
+  }
 
   well_locs <- make_well_order(num_wells = num_wells, pad = .pad_well_num)
 
@@ -174,10 +174,9 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
 }
 
 
-
-##----------------------------------------
+## ----------------------------------------
 ##  Number of rows                      --
-##----------------------------------------
+## ----------------------------------------
 
 #' Return the number of lines in a file
 #'
@@ -189,12 +188,13 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
 #' @export
 #'
 count_newlines <- function(path, remove_header = TRUE, ignore_trailing = FALSE) {
-
   assertthat::assert_that(
-    is.logical(remove_header), msg = "`remove_header` must be true or false."
+    is.logical(remove_header),
+    msg = "`remove_header` must be true or false."
   )
   assertthat::assert_that(
-    is.logical(ignore_trailing), msg = "`ignore_trailing` must be true or false."
+    is.logical(ignore_trailing),
+    msg = "`ignore_trailing` must be true or false."
   )
 
   linecount <- R.utils::countLines(path)
@@ -212,18 +212,19 @@ count_newlines <- function(path, remove_header = TRUE, ignore_trailing = FALSE) 
 
   assertthat::assert_that(
     identical(returncount, 384, ignore.environment = TRUE),
-    msg = glue::glue("File {path} does not contain 384 rows. ",
-                     "Something might be wrong with the file.")
+    msg = glue::glue(
+      "File {path} does not contain 384 rows. ",
+      "Something might be wrong with the file."
+    )
   )
 
   as.integer(returncount)
 }
 
 
-
-##----------------------------------------
+## ----------------------------------------
 ##  Find skip values                    --
-##----------------------------------------
+## ----------------------------------------
 
 #' Find and return skip values
 #'

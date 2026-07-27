@@ -6,9 +6,6 @@
 \usage{
 fatools_matrix(m)
 }
-\arguments{
-\item{m}{}
-}
 \description{
 Title
 }

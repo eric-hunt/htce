@@ -6,9 +6,6 @@
 \usage{
 \method{tidy}{fatools_matrix}(x, ...)
 }
-\arguments{
-\item{x}{}
-}
 \description{
 Title
 }
