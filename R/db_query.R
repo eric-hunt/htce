@@ -18,7 +18,11 @@
 #' @param .pg_install A Boolean - install the DuckDB Postgres extension?
 #' @param .pg_load A Boolean - use the DuckDB Postgres extension?
 #' @param .glimpse A Boolean - should collected results be previewed
-#' @param .return A string - how collected data should be returned, default is a `data.frame` (alias *df*, see [DBI::dbGetQuery()]), but can also be coerced to a `tibble` (alias *tbl*, see [tibble::as_tibble()]) or `data.table` (alias *dt*, see [data.table::as.data.table()])
+#' @param .return A string - how collected data should be returned, default is a
+#' `nanoarrow_array_stream` (alias *na*, see [adbcdrivermanager::read_adbc()]),
+#' but can also be coerced to a `tibble` (alias *tbl*, see
+#' [tibble::as_tibble()]) or `data.table` (alias *dt*, see
+#' [data.table::as.data.table()])
 #'
 #' @name db_query
 
@@ -54,7 +58,7 @@ dkdb_execute <- function(
 
   if (is.null(.db_con) & !.quiet) {
     withr::defer(
-      cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
+      cat("\nConnection closed? ", !adbcdrivermanager::adbc_xptr_is_valid(db), "\n"),
       priority = "last"
     )
   }
@@ -70,7 +74,7 @@ dkdb_execute <- function(
     glue::glue_sql(
       query_string,
       !!!varargs,
-      .con = db
+      .con = DBI::ANSI()
     )
   )
 
@@ -79,18 +83,18 @@ dkdb_execute <- function(
   }
 
   if (.pg_install) {
-    DBI::dbExecute(db, "INSTALL postgres_scanner;")
+    adbcdrivermanager::execute_adbc(db, "INSTALL postgres_scanner;")
   }
 
   if (.pg_load) {
-    DBI::dbExecute(db, "LOAD postgres_scanner;")
+    adbcdrivermanager::execute_adbc(db, "LOAD postgres_scanner;")
   }
 
   if (!.quiet) {
     cat("\nExecuting query..\n\n")
   }
 
-  DBI::dbExecute(db, statement)
+  adbcdrivermanager::execute_adbc(db, as.character(statement))
 }
 
 
@@ -130,7 +134,7 @@ dkdb_collect <- function(
 
   if (is.null(.db_con) & !.quiet) {
     withr::defer(
-      cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
+      cat("\nConnection closed? ", !adbcdrivermanager::adbc_xptr_is_valid(db), "\n"),
       priority = "last"
     )
   }
@@ -155,7 +159,7 @@ dkdb_collect <- function(
     glue::glue_sql(
       query_string,
       !!!varargs,
-      .con = db
+      .con = DBI::ANSI()
     )
   )
 
@@ -164,18 +168,18 @@ dkdb_collect <- function(
   }
 
   if (.pg_install) {
-    DBI::dbExecute(db, "INSTALL postgres_scanner;")
+    adbcdrivermanager::execute_adbc(db, "INSTALL postgres_scanner;")
   }
 
   if (.pg_load) {
-    DBI::dbExecute(db, "LOAD postgres_scanner;")
+    adbcdrivermanager::execute_adbc(db, "LOAD postgres_scanner;")
   }
 
   if (!.quiet) {
     cat("\nCollecting the query results..\n\n")
   }
 
-  collected <- DBI::dbGetQuery(db, statement)
+  collected <- adbcdrivermanager::read_adbc(db, as.character(statement))
 
   if (.glimpse) {
     dplyr::glimpse(collected)

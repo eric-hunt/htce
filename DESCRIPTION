@@ -1,7 +1,7 @@
 Package: htce
 Title: A set of internal tools for managing high-throughput assay data at NEB
 Version: 0.1.0
-Authors@R: 
+Authors@R:
     person(
         "Eric", "Hunt",
         email = "52219938+eric-hunt@users.noreply.github.com",
@@ -13,7 +13,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends: R (>= 4.4)
-Imports: 
+Imports:
+    adbcdrivermanager,
     assertthat,
     data.table,
     DBI,

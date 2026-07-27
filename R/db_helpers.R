@@ -175,7 +175,7 @@ dkdb_lookup <- function(...,
           )
         }(),
       !!!named_vals,
-      .con = .db_con
+      .con = DBI::ANSI()
     )
   ) |>
     dkdb_collect(.db_loc = .db_loc, .db_con = .db_con, .pg_load = .pg_load) |>
