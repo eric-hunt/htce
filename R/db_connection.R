@@ -10,36 +10,37 @@
 #' DuckDB Connection
 #'
 #' DuckDB connection handling à la `withr::local_db_connection`, backed by
-#' [adbcdrivermanager::adbc_connection_init()] rather than `DBI::dbConnect()`.
+#' [adbi::adbi()] (a `{DBI}`-compliant wrapper around
+#' [adbcdrivermanager::adbc_connection_init()]) rather than a raw ADBC
+#' connection.
 #'
 #' @param db_file_path a string - path to a DuckDB file
 #' @param read_only a Boolean - opens the database with `access_mode = "READ_ONLY"`;
 #'default is `FALSE`
-#' @param .local_envir an environment - passed to [adbcdrivermanager::local_adbc()];
+#' @param .local_envir an environment - passed to [withr::defer()];
 #'default is `parent.frame()`
 #'
-#' @return A database connection of class *adbc_connection*.
+#' @return A database connection of class *AdbiConnection* (inherits from
+#' `DBI::DBIConnection`).
 #'
-#' @seealso [adbcdrivermanager::adbc_connection_init()], [adbcdrivermanager::local_adbc()],
+#' @seealso [adbi::adbi()], [DBI::dbConnect()], [withr::defer()],
 #' [duckdb::duckdb_adbc()]
 #'
 #' @export
 #'
 with_duckdb_connection <- function(db_file_path, read_only = FALSE,
                                    .local_envir = parent.frame()) {
-  requireNamespace("adbcdrivermanager", quietly = TRUE)
+  requireNamespace("adbi", quietly = TRUE)
+  requireNamespace("DBI", quietly = TRUE)
   requireNamespace("duckdb", quietly = TRUE)
+  requireNamespace("withr", quietly = TRUE)
 
-  db <- adbcdrivermanager::adbc_database_init(
-    duckdb::duckdb_adbc(),
+  con <- DBI::dbConnect(
+    adbi::adbi(duckdb::duckdb_adbc()),
     path = db_file_path,
     access_mode = if (read_only) "READ_ONLY" else "READ_WRITE"
   )
-  adbcdrivermanager::local_adbc(db, .local_envir = .local_envir)
-
-  con <- adbcdrivermanager::adbc_connection_init(db)
-  adbcdrivermanager::local_adbc(con, .local_envir = .local_envir)
-
-  stopifnot(methods::is(con, "adbc_connection"))
+  stopifnot(methods::is(con, "DBIConnection"))
+  withr::defer(DBI::dbDisconnect(con), envir = .local_envir)
   return(con)
 }

@@ -19,7 +19,7 @@
 #' @param .pg_load A Boolean - use the DuckDB Postgres extension?
 #' @param .glimpse A Boolean - should collected results be previewed
 #' @param .return A string - how collected data should be returned, default is a
-#' `nanoarrow_array_stream` (alias *na*, see [adbcdrivermanager::read_adbc()]),
+#' `nanoarrow_array_stream` (alias *na*, see [DBI::dbGetQueryArrow()]),
 #' but can also be coerced to a `tibble` (alias *tbl*, see
 #' [tibble::as_tibble()]) or `data.table` (alias *dt*, see
 #' [data.table::as.data.table()])
@@ -54,11 +54,16 @@ dkdb_execute <- function(
   if (!.quiet) {
     print(db)
     cat("\n")
+    # AdbiConnection's show/dbGetInfo method leaves an ADBC stream that is
+    # only released by the R garbage collector; without forcing collection
+    # here, a subsequent dbDisconnect() can fail to fully release the
+    # connection (see "unreleased child object" warning).
+    gc()
   }
 
   if (is.null(.db_con) & !.quiet) {
     withr::defer(
-      cat("\nConnection closed? ", !adbcdrivermanager::adbc_xptr_is_valid(db), "\n"),
+      cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
       priority = "last"
     )
   }
@@ -74,7 +79,7 @@ dkdb_execute <- function(
     glue::glue_sql(
       query_string,
       !!!varargs,
-      .con = DBI::ANSI()
+      .con = db
     )
   )
 
@@ -83,18 +88,18 @@ dkdb_execute <- function(
   }
 
   if (.pg_install) {
-    adbcdrivermanager::execute_adbc(db, "INSTALL postgres_scanner;")
+    DBI::dbExecute(db, "INSTALL postgres_scanner;")
   }
 
   if (.pg_load) {
-    adbcdrivermanager::execute_adbc(db, "LOAD postgres_scanner;")
+    DBI::dbExecute(db, "LOAD postgres_scanner;")
   }
 
   if (!.quiet) {
     cat("\nExecuting query..\n\n")
   }
 
-  adbcdrivermanager::execute_adbc(db, as.character(statement))
+  DBI::dbExecute(db, statement)
 }
 
 
@@ -130,11 +135,16 @@ dkdb_collect <- function(
   if (!.quiet) {
     print(db)
     cat("\n")
+    # AdbiConnection's show/dbGetInfo method leaves an ADBC stream that is
+    # only released by the R garbage collector; without forcing collection
+    # here, a subsequent dbDisconnect() can fail to fully release the
+    # connection (see "unreleased child object" warning).
+    gc()
   }
 
   if (is.null(.db_con) & !.quiet) {
     withr::defer(
-      cat("\nConnection closed? ", !adbcdrivermanager::adbc_xptr_is_valid(db), "\n"),
+      cat("\nConnection closed? ", !DBI::dbIsValid(db), "\n"),
       priority = "last"
     )
   }
@@ -159,7 +169,7 @@ dkdb_collect <- function(
     glue::glue_sql(
       query_string,
       !!!varargs,
-      .con = DBI::ANSI()
+      .con = db
     )
   )
 
@@ -168,18 +178,18 @@ dkdb_collect <- function(
   }
 
   if (.pg_install) {
-    adbcdrivermanager::execute_adbc(db, "INSTALL postgres_scanner;")
+    DBI::dbExecute(db, "INSTALL postgres_scanner;")
   }
 
   if (.pg_load) {
-    adbcdrivermanager::execute_adbc(db, "LOAD postgres_scanner;")
+    DBI::dbExecute(db, "LOAD postgres_scanner;")
   }
 
   if (!.quiet) {
     cat("\nCollecting the query results..\n\n")
   }
 
-  collected <- adbcdrivermanager::read_adbc(db, as.character(statement))
+  collected <- DBI::dbGetQueryArrow(db, statement)
 
   if (.glimpse) {
     dplyr::glimpse(collected)
