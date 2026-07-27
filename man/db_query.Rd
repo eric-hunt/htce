@@ -45,7 +45,11 @@ dkdb_collect(
 
 \item{.glimpse}{A Boolean - should collected results be previewed}
 
-\item{.return}{A string - how collected data should be returned, default is a \code{data.frame} (alias \emph{df}, see \code{\link[DBI:dbGetQuery]{DBI::dbGetQuery()}}), but can also be coerced to a \code{tibble} (alias \emph{tbl}, see \code{\link[tibble:as_tibble]{tibble::as_tibble()}}) or \code{data.table} (alias \emph{dt}, see \code{\link[data.table:as.data.table]{data.table::as.data.table()}})}
+\item{.return}{A string - how collected data should be returned, default is a
+\code{nanoarrow_array_stream} (alias \emph{na}, see \code{\link[DBI:dbGetQueryArrow]{DBI::dbGetQueryArrow()}}),
+but can also be coerced to a \code{tibble} (alias \emph{tbl}, see
+\code{\link[tibble:as_tibble]{tibble::as_tibble()}}) or \code{data.table} (alias \emph{dt}, see
+\code{\link[data.table:as.data.table]{data.table::as.data.table()}})}
 }
 \value{
 A \code{data.frame} (default), \code{tibble}, or \code{data.table} containing the collected query results

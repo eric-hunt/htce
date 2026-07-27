@@ -13,19 +13,23 @@ with_duckdb_connection(
 \arguments{
 \item{db_file_path}{a string - path to a DuckDB file}
 
-\item{read_only}{a Boolean - passed to \code{\link[DBI:dbConnect]{DBI::dbConnect()}};
+\item{read_only}{a Boolean - opens the database with \code{access_mode = "READ_ONLY"};
 default is \code{FALSE}}
 
 \item{.local_envir}{an environment - passed to \code{\link[withr:defer]{withr::defer()}};
 default is \code{parent.frame()}}
 }
 \value{
-A database connection of class \emph{DBIConnection}.
+A database connection of class \emph{AdbiConnection} (inherits from
+\code{DBI::DBIConnection}).
 }
 \description{
-DuckDB connection handling à la \code{withr::local_db_connection}.
+DuckDB connection handling à la \code{withr::local_db_connection}, backed by
+\code{\link[adbi:adbi]{adbi::adbi()}} (a \code{{DBI}}-compliant wrapper around
+\code{\link[adbcdrivermanager:adbc_connection_init]{adbcdrivermanager::adbc_connection_init()}}) rather than a raw ADBC
+connection.
 }
 \seealso{
-\code{\link[DBI:dbConnect]{DBI::dbConnect()}}, \code{\link[withr:defer]{withr::defer()}}, \code{\link[withr:local_db_connection]{withr::local_db_connection()}},
-\href{https://github.com/duckdb/duckdb/pull/5525}{duckdb/duckdb#5525}
+\code{\link[adbi:adbi]{adbi::adbi()}}, \code{\link[DBI:dbConnect]{DBI::dbConnect()}}, \code{\link[withr:defer]{withr::defer()}},
+\code{\link[duckdb:duckdb_adbc]{duckdb::duckdb_adbc()}}
 }
