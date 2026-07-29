@@ -37,7 +37,7 @@ with_duckdb_connection <- function(db_file_path, read_only = FALSE,
 
   con <- DBI::dbConnect(
     adbi::adbi(duckdb::duckdb_adbc()),
-    path = db_file_path,
+    uri = db_file_path,
     access_mode = if (read_only) "READ_ONLY" else "READ_WRITE"
   )
   stopifnot(methods::is(con, "DBIConnection"))

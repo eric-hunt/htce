@@ -14,10 +14,19 @@ the codebase now uses the second one.
 ```r
 con <- DBI::dbConnect(
   adbi::adbi(duckdb::duckdb_adbc()),
-  path = db_file_path,
+  uri = db_file_path,
   access_mode = if (read_only) "READ_ONLY" else "READ_WRITE"
 )
 ```
+
+**`uri` vs `path`**: both are accepted by the duckdb ADBC driver and both
+correctly point the connection at the given file (verified: neither is
+silently ignored). But they are not just two spellings of the same thing —
+confirmed by passing both at once, in both argument orders — `uri` always
+wins and `path` is dropped. `dbdir` (the old DBI/duckdb arg name) errors
+outright (`options were not recognized: dbdir`), confirming it isn't carried
+over from the pre-ADBC API. Standardized on `uri` since it's the one that
+takes priority whenever both could apply.
 
 `duckdb::duckdb_adbc()` is the exported driver handle the `duckdb` package ships;
 there is no separate `adbcduckdb` driver package installed/needed here (Eric
