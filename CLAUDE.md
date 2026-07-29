@@ -1,3 +1,5 @@
+# References
+
 @AGENTS.md
 
 ## DuckDB backend: DBI → adbi/adbcdrivermanager (branch `refactor/adbc-duckdb-backend`)
@@ -48,7 +50,7 @@ no registered DBI S4 methods — confirmed no `dbQuoteIdentifier`/`dbQuoteLitera
 methods exist for it, and **{dbplyr} has no registered methods for it either**,
 so `dplyr::tbl(con, ...)` doesn't work. That broke a primary workflow purpose
 of this package (notebook use via dbplyr). `AdbiConnection` and a raw
-`adbc_connection` are *not* interchangeable — confirmed passing an
+`adbc_connection` are _not_ interchangeable — confirmed passing an
 `AdbiConnection` into `adbcdrivermanager::execute_adbc()` directly errors
 (`assert_adbc()` rejects it), and `adbcdrivermanager::local_adbc()` errors on
 an `AdbiConnection` too (it's a different class hierarchy). Since
