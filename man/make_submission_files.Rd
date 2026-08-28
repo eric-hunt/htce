@@ -27,7 +27,7 @@ make_submission_files(
 
 \item{dest_dir}{A string - the directory to create the tab-delimited submission files}
 
-\item{.pad_well_num}{A Boolean - passed to \code{\link[=make_well_order]{make_well_order()}} \emph{pad} argument}
+\item{.pad_well_num}{A Boolean - passed to \code{\link[ombre:make_well_order]{ombre::make_well_order()}} \emph{pad} argument}
 }
 \description{
 Creates tab-delimited files for submitting CE plates to the NEB sequencing core via the LIMS system.

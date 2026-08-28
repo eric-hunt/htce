@@ -8,53 +8,45 @@
 
 #' Create a vector of well addresses
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#'
+#' This function has moved to `ombre::make_well_order()`, which owns plate
+#' geometry for the bundle. It is kept here as a thin delegating shim so
+#' existing `htce::` callers keep working; it will be removed once they have
+#' migrated.
+#'
+#' The replacement spells its arguments `format` and `byrow`:
+#' `make_well_order(num_wells = 384, by = "row")` becomes
+#' `ombre::make_well_order(format = 384, byrow = TRUE)`.
+#'
 #' @param num_wells An integer - the number of wells in the plate format (96 or 384)
 #' @param by A string - which way the order should be populated relative to the plate format, i.e. by `"column"` (default) or by `"row"`
 #' @param pad A Boolelan - whether or not to pad the column numbers with zeros (e.g. A1 vs. A01)
 #'
 #' @return A character vector of well addresses in top to bottom, left to right order (e.g. for 96 wells, A1 -> H1, A2...H11, A12 -> H12)
+#' @keywords internal
 #' @export
 #'
-make_well_order <- function(num_wells = 96L, by = c("column", "row"),
-                            pad = FALSE) {
-  assertthat::assert_that(
-    is.numeric(num_wells),
-    assertthat::is.scalar(num_wells),
-    is.element(num_wells, c(96L, 384L))
+make_well_order <- function(
+  num_wells = 96L,
+  by = c("column", "row"),
+  pad = FALSE
+) {
+  lifecycle::deprecate_warn(
+    when = "0.1.0",
+    what = "htce::make_well_order()",
+    with = "ombre::make_well_order()"
   )
-  if (num_wells == 384L) {
-    x <- 24L
-    y <- 16L
-  } else {
-    x <- 12L
-    y <- 8L
-  }
-
-  well_letters <- LETTERS[1L:y]
-  well_numbers <- as.character(c(1L:x))
-  if (pad) {
-    well_numbers <- stringr::str_pad(well_numbers, 2L, "left", "0")
-    number_labels <- rep(well_numbers, y)
-  }
 
   by <- rlang::arg_match(by)
-  if (by == "row") {
-    letter_labels <- lapply(well_letters, rep, x) |> unlist()
-    number_labels <- rep(well_numbers, y)
-  } else {
-    letter_labels <- rep(well_letters, x)
-    number_labels <- lapply(well_numbers, rep, y) |> unlist()
-  }
 
-  well_order <- purrr::map2_chr(
-    letter_labels,
-    number_labels,
-    paste0
+  ombre::make_well_order(
+    format = num_wells,
+    byrow = identical(by, "row"),
+    pad = pad
   )
-
-  return(well_order)
 }
-
 
 
 ##-----------------------------------------
@@ -71,7 +63,7 @@ make_well_order <- function(num_wells = 96L, by = c("column", "row"),
 #' @param num_wells An integer - 96 or 384, the number of wells on the submission plate
 #' @param num_plates An integer - the number of plate submission files to create
 #' @param dest_dir A string - the directory to create the tab-delimited submission files
-#' @param .pad_well_num A Boolean - passed to [htce::make_well_order()] *pad* argument
+#' @param .pad_well_num A Boolean - passed to [ombre::make_well_order()] *pad* argument
 #'
 #' @export
 #'
@@ -105,7 +97,7 @@ make_submission_files <- function(initials = "EH", datetime = NULL,
     datetime <- datetime_to_string(datetime)
   }
 
-  well_locs <- make_well_order(num_wells = num_wells, pad = .pad_well_num)
+  well_locs <- ombre::make_well_order(format = num_wells, pad = .pad_well_num)
 
   if (num_wells == 96) {
     sample_str_padding <- list(width = 2, side = "left", pad = "0")

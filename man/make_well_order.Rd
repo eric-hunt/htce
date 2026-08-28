@@ -17,5 +17,15 @@ make_well_order(num_wells = 96L, by = c("column", "row"), pad = FALSE)
 A character vector of well addresses in top to bottom, left to right order (e.g. for 96 wells, A1 -> H1, A2...H11, A12 -> H12)
 }
 \description{
-Create a vector of well addresses
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function has moved to \code{ombre::make_well_order()}, which owns plate
+geometry for the bundle. It is kept here as a thin delegating shim so
+existing \verb{htce::} callers keep working; it will be removed once they have
+migrated.
+
+The replacement spells its arguments \code{format} and \code{byrow}:
+\code{make_well_order(num_wells = 384, by = "row")} becomes
+\code{ombre::make_well_order(format = 384, byrow = TRUE)}.
 }
+\keyword{internal}
